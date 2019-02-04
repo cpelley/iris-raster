@@ -61,7 +61,7 @@ class TestGeoTiffExport(tests.IrisTest):
                                           data.astype(np.float32))
 
     def _check_tiff_export(self, masked, inverted=False):
-        tif_header = 'SMALL_total_column_co2.nc.tif_header.txt'
+        tif_header = 'sample_field.nc.tif_header.txt'
         tif_header_keys = [256, 257, 258, 259, 262, 273,
                            277, 278, 279, 284, 339, 33550, 33922]
         tif_header_entries = {
@@ -82,9 +82,8 @@ class TestGeoTiffExport(tests.IrisTest):
             33550: (1.125, 1.125, 0.0),
             33922: (0.0, 0.0, 0.0, -0.5625, 89.4375, 0.0)
         }
-        fin = tests.get_data_path(('NetCDF', 'global', 'xyt',
-                                   'SMALL_total_column_co2.nc'))
-        cube = iris.load_cube(fin)[0]
+        fin = 'sample_field.nc'
+        cube = iris.load_cube(fin)
         # PIL doesn't support float64
         cube.data = cube.data.astype('f4')
 
