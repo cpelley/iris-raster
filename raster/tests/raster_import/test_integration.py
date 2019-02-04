@@ -1,17 +1,15 @@
-# (C) British Crown Copyright 2015 - 2017, Met Office
-# Refer to README.md of this project for license details.
-#
-# This file is part of ANTS.
+# (C) British Crown Copyright 2015 - 2019, Met Office
 import cPickle as pickle
 import tempfile
 
+import iris.tests as tests
 import numpy as np
 
-import ants.fileformats.raster as raster
-import ants.tests as tests
+import raster._raster_import as raster_import
+from raster import export_geotiff
 
 
-class Test_pickleable(tests.TestCase):
+class Test_pickleable(tests.IrisTest):
     def assertProxyEqual(self, proxy1, proxy2):
         for item in proxy1.__slots__:
             self.assertEqual(getattr(proxy1, item), getattr(proxy2, item))
@@ -20,15 +18,14 @@ class Test_pickleable(tests.TestCase):
         # Ensure that the __getstate__ and __setstate__ special methods
         # provide pickleable gdal proxies.  See
         # https://docs.python.org/2/library/pickle.html
-        proxy = raster._GdalDataProxy((2, 3), np.uint8, 'some_path.bil', 0,
-                                      -999)
+        proxy = raster_import._GdalDataProxy((2, 3), np.uint8, 'some_path.bil',
+                                             0, -999)
         proxy_pickled = pickle.dumps(proxy)
         proxy_unpickled = pickle.loads(proxy_pickled)
         self.assertProxyEqual(proxy_unpickled, proxy)
 
 
-@tests.skip_gdal
-class Test_global_field(tests.TestCase):
+class Test_global_field(tests.IrisTest):
     def assertCubeEqual(self, cube1, cube2):
         self.assertArrayEqual(cube1.data, cube2.data)
         for ax in ['x', 'y']:
@@ -45,20 +42,19 @@ class Test_global_field(tests.TestCase):
         cube = tests.stock.geodetic((6, 3))
         fh = tempfile.NamedTemporaryFile(suffix='.bil')
 
-        raster._export_raster(cube, fh.name)
-        res_cube = raster.load_cubes(fh.name).next()
+        raster.export_geotiff(cube, fh.name)
+        res_cube = raster_import.load_cubes(fh.name).next()
 
         self.assertCubeEqual(res_cube, cube)
 
 
-@tests.skip_gdal
-class Test_deferred_loading(tests.TestCase):
+class Test_deferred_loading(tests.IrisTest):
     def setUp(self):
         self.cube = tests.stock.geodetic((6, 3))
         self.fh = tempfile.NamedTemporaryFile(suffix='.bil')
 
-        raster._export_raster(self.cube, self.fh.name)
-        self.res_cube = raster.load_cubes(self.fh.name).next()
+        raster.export_geotiff(self.cube, self.fh.name)
+        self.res_cube = raster_import.load_cubes(self.fh.name).next()
 
     def test_no_touch_defer_status(self):
         self.assertTrue(self.res_cube.has_lazy_data())

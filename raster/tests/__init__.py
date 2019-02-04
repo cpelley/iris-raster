@@ -4,6 +4,8 @@ from six.moves import (filter, input, map, range, zip)  # noqa
 
 import os
 
+import iris.tests
+
 
 iris.tests._RESULT_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'results')

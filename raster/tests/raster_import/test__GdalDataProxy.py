@@ -1,15 +1,15 @@
-# (C) British Crown Copyright 2015 - 2016, Met Office
+# (C) British Crown Copyright 2015 - 2019, Met Office
 # Refer to README.md of this project for license details.
 #
 # This file is part of ANTS.
+import iris.tests as tests
 import mock
 import numpy as np
 
-from ants.fileformats.raster import _GdalDataProxy
-import ants.tests as tests
+from raster._raster_import import _GdalDataProxy
 
 
-class Test___init__(tests.TestCase):
+class Test___init__(tests.IrisTest):
     def test_all(self):
         # Ensure that the properties of the object are expected, in particular
         # that the fill_value dtype matches the specified dtype.
@@ -40,7 +40,7 @@ class Test___init__(tests.TestCase):
         self.assertIs(proxy.dtype, np.dtype('int16'))
 
 
-class Test_ndim(tests.TestCase):
+class Test_ndim(tests.IrisTest):
     @staticmethod
     def gen_gdalproxy(shape):
         dtype = None
@@ -63,7 +63,7 @@ class Test_ndim(tests.TestCase):
             self.gen_gdalproxy(shape)
 
 
-class Test___repr__(tests.TestCase):
+class Test___repr__(tests.IrisTest):
     def test_all(self):
         proxy = _GdalDataProxy((2, 3), np.int8, 'some_path.bil', 0, -999)
         target = ("<_GdalDataProxy shape=(3, 2) dtype=dtype('int8') "
@@ -71,8 +71,7 @@ class Test___repr__(tests.TestCase):
         self.assertEqual(proxy.__repr__(), target)
 
 
-@tests.skip_gdal
-class Test___getitem__(tests.TestCase):
+class Test___getitem__(tests.IrisTest):
     def setUp(self):
         self.data = np.array([[1, 2, 3], [4, 5, 6]])
 

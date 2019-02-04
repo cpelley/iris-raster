@@ -1,22 +1,98 @@
-# (C) British Crown Copyright 2015 - 2018, Met Office
-# Refer to README.md of this project for license details.
-#
-# This file is part of ANTS.
+# (C) British Crown Copyright 2015 - 2019, Met Office
+import iris.tests as tests
+import raster.tests
+
+from collections import namedtuple
+import copy
+
+import iris
 import mock
 import numpy as np
 
-import ants
-import ants.tests as tests
+from raster._raster_import import load_cubes
 
 
-try:
-    from ants.fileformats.raster import load_cubes
-except Exception:
-    pass
+class CFCRS(object):
+    """
+    Encapsulation of coordinate system and metadata corresponding to grid
+    metadata.
+
+    """
+    _AxisMeta = namedtuple('AxisMeta', 'standard_name units')
+
+    def __init__(self, crs):
+        """
+        Return an object describing a coordinate system along with metadata
+        required for a grid defined on this coordinate system.
+
+        Parameters
+        ----------
+        crs : :class:`iris.coord_systems.CoordSystem`
+        x_metadata : dict
+            Metadata describing the x axis of a grid with corresponding
+            coordinate system.  Of the form
+            {'standard_name': ..., 'units':, ...}.
+        y_metatada : dict
+            Metadata describing the x axis of a grid with corresponding
+            coordinate system.  Of the form
+            {'standard_name': ..., 'units':, ...}.
+
+        """
+        self._crs = crs
+
+        if isinstance(crs, iris.coord_systems.GeogCS):
+            x_metadata = {'standard_name': 'longitude', 'units': 'degree_east'}
+            y_metadata = {'standard_name': 'latitude', 'units': 'degree_north'}
+        elif isinstance(crs, iris.coord_systems.RotatedGeogCS):
+            x_metadata = {'standard_name': 'grid_longitude', 'units':
+                          'degrees'}
+            y_metadata = {'standard_name': 'grid_latitude', 'units': 'degrees'}
+        else:
+            x_metadata = {'standard_name': 'projection_x_coordinate', 'units':
+                          'm'}
+            y_metadata = {'standard_name': 'projection_y_coordinate', 'units':
+                          'm'}
+
+        self._x_metadata = self._set_metadata(x_metadata)
+        self._y_metadata = self._set_metadata(y_metadata)
+
+    def __str__(self):
+        fmt = '{!s}, x_meatadata={!s}, y_metadata={!s}'
+        return fmt.format(self.crs, self.x, self.y)
+
+    def __repr__(self):
+        return '{!r}'.format(self.crs)
+
+    def _set_metadata(self, value):
+        return self._AxisMeta(**value)
+
+    @property
+    def crs(self):
+        """Return coordinate system."""
+        return copy.deepcopy(self._crs)
+
+    @property
+    def x(self):
+        """Return metadata corresponding to the x axis."""
+        return self._x_metadata
+
+    @property
+    def y(self):
+        """Return metadata corresponding to the y axis."""
+        return self._y_metadata
 
 
-@tests.skip_gdal
-class TestAll(tests.TestCase):
+WGS84_GEODETIC = CFCRS(
+    iris.coord_systems.GeogCS(semi_major_axis=6378137.0,
+                              inverse_flattening=298.257223563))
+
+
+OSGB = CFCRS(iris.coord_systems.TransverseMercator(
+    49, -2, 400000, -100000, 0.9996012717,
+    iris.coord_systems.GeogCS(6377563.396, 6356256.909)))
+
+
+class TestAll(tests.IrisTest):
     def setUp(self):
         self.dataset = mock.Mock(name='dataset')
         self.dataset.RasterCount = 1
@@ -79,8 +155,7 @@ class TestAll(tests.TestCase):
         self.dataset.GetProjection.return_value = gdal_projection
         cube = load_cubes('some_filename').next()
 
-        target_crs = ants.coord_systems.WGS84_GEODETIC
-        self.assertCRS(cube, target_crs)
+        self.assertCRS(cube, WGS84_GEODETIC)
 
     def test_crs_osgb(self):
         # Ensure that we correctly interpret the crs from ite source data.
@@ -98,8 +173,7 @@ class TestAll(tests.TestCase):
         self.dataset.GetProjection.return_value = gdal_projection
         cube = load_cubes('some_filename').next()
 
-        target_crs = ants.coord_systems.OSGB
-        self.assertCRS(cube, target_crs)
+        self.assertCRS(cube, OSGB)
 
     def test_multiple_raster_bands(self):
         # Ensure that CubeList of length corresponding to the number of bands
@@ -107,7 +181,7 @@ class TestAll(tests.TestCase):
         self.dataset.RasterCount = 3
         cubes = list(load_cubes('some_filename'))
         self.assertEqual(len(cubes), self.dataset.RasterCount)
-        self.assertCML(cubes, ('fileformats', 'raster',
+        self.assertCML(cubes, ('raster_import',
                                'raster_multiple_band_import.cml'),
                        checksum=False)
 
@@ -127,15 +201,6 @@ class TestAll(tests.TestCase):
         msg = msg.format(rotation[0], rotation[1])
         with self.assertRaisesRegexp(ValueError, msg):
             load_cubes('some_filename').next()
-
-    def test_no_gdal_library(self):
-        # Ensure that we raise a suitable exception when there is no gdal
-        # library present.
-        msg = 'gdal error'
-        ants.fileformats.raster._GDAL_IMPORT_ERROR = ImportError('gdal error')
-        with mock.patch('ants.fileformats.raster.gdal', new=None):
-            with self.assertRaisesRegexp(ImportError, msg):
-                load_cubes('some_filename').next()
 
 
 if __name__ == "__main__":
