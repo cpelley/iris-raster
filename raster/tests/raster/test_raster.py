@@ -3,6 +3,8 @@ from __future__ import (absolute_import, division, print_function)
 from six.moves import (filter, input, map, range, zip)  # noqa
 import six
 
+import os
+
 import iris.tests as tests
 import iris
 import numpy as np
@@ -82,7 +84,8 @@ class TestGeoTiffExport(tests.IrisTest):
             33550: (1.125, 1.125, 0.0),
             33922: (0.0, 0.0, 0.0, -0.5625, 89.4375, 0.0)
         }
-        fin = 'sample_field.nc'
+        fin = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                           'sample_field.nc')
         cube = iris.load_cube(fin)
         # PIL doesn't support float64
         cube.data = cube.data.astype('f4')
