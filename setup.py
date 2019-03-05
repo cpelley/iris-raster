@@ -26,4 +26,21 @@ if __name__ == '__main__':
           description=('An iris extension to import and export raster data '
                        'using the GDAL library.'),
           version=extract_version(),
-          packages=find_packages())
+          packages=find_packages(),
+          classifiers=[
+             'Development Status :: 3 - Alpha',
+             'License :: OSI Approved :: LGPLv3 License',
+             'Operating System :: MacOS :: MacOS X',
+             'Operating System :: POSIX',
+             'Operating System :: POSIX :: AIX',
+             'Operating System :: POSIX :: Linux',
+             'Operating System :: Microsoft :: Windows',
+             'Programming Language :: Python',
+             'Programming Language :: Python :: 2',
+             'Programming Language :: Python :: 2.7',
+             'Programming Language :: Python :: 3',
+             'Programming Language :: Python :: 3.4',
+             'Programming Language :: Python :: 3.5',
+             'Topic :: Scientific/Engineering',
+             'Topic :: Scientific/Engineering :: GIS'],
+          )
