@@ -1,0 +1,6 @@
+python
+setuptools
+numpy >=1.11
+iris
+mock
+gdal
