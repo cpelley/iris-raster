@@ -1,30 +1,8 @@
-# (C) British Crown Copyright 2013 - 2017, Met Office
-#
-# This file is part of Iris.
-#
-# Iris is free software: you can redistribute it and/or modify it under
-# the terms of the GNU Lesser General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Iris is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Iris.  If not, see <http://www.gnu.org/licenses/>.
+# (C) British Crown Copyright 2013 - 2019, Met Office
 """
-Experimental module for importing/exporting raster data from Iris cubes using
-the GDAL library.
-
+Importing/exporting raster data from Iris cubes using the GDAL library.
 See also: `GDAL - Geospatial Data Abstraction Library <http://www.gdal.org>`_.
-
-TODO: If this module graduates from experimental the (optional) GDAL
-      dependency should be added to INSTALL
-
 """
-
 from __future__ import (absolute_import, division, print_function)
 from six.moves import (filter, input, map, range, zip)  # noqa
 
@@ -55,7 +33,6 @@ def _gdal_write_array(x_min, x_step, y_max, y_step, coord_system, data, fname,
     Use GDAL WriteArray to export data as a 32-bit raster image.
     Requires the array data to be of the form: North-at-top
     and West-on-left.
-
     Args:
         * x_min: Minimum X coordinate bounds value.
         * x_step: Change in X coordinate per cell.
@@ -66,11 +43,8 @@ def _gdal_write_array(x_min, x_step, y_max, y_step, coord_system, data, fname,
         * data (numpy.ndarray): 2d array of values to export
         * fname (string): Output file name.
         * ftype (string): Export file type.
-
     .. note::
-
         Projection information is currently not written to the output.
-
     """
     byte_order = data.dtype.str[0]
     format = data.dtype.str[1:]
@@ -111,17 +85,13 @@ def _gdal_write_array(x_min, x_step, y_max, y_step, coord_system, data, fname,
 def export_geotiff(cube, fname):
     """
     Writes cube data to raster file format as a PixelIsArea GeoTiff image.
-
     Args:
         * cube (Cube): The 2D regularly gridded cube slice to be exported.
                        The cube must have regular, contiguous bounds.
         * fname (string): Output file name.
-
     .. note::
-
         For more details on GeoTiff specification and PixelIsArea, see:
         http://www.remotesensing.org/geotiff/spec/geotiff2.5.html#2.5.2.2
-
     """
     if cube.ndim != 2:
         raise ValueError("The cube must be two dimensional.")

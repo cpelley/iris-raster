@@ -1,39 +1,23 @@
-# (C) British Crown Copyright 2014 - 2016, Met Office
-#
-# This file is part of Iris.
-#
-# Iris is free software: you can redistribute it and/or modify it under
-# the terms of the GNU Lesser General Public License as published by the
-# Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# Iris is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public License
-# along with Iris.  If not, see <http://www.gnu.org/licenses/>.
-
+# (C) British Crown Copyright 2014 - 2019, Met Office
 from __future__ import (absolute_import, division, print_function)
 from six.moves import (filter, input, map, range, zip)  # noqa
 import six
 
+import os
+
 import iris.tests as tests
 import iris
-
 import numpy as np
 import PIL.Image
 
+from raster import export_geotiff
 
-@tests.skip_gdal
-@tests.skip_data
+
 class TestGeoTiffExport(tests.IrisTest):
     def check_tiff_header(self, tiff_filename, expect_keys, expect_entries):
         """
         Checks the given tiff file's metadata contains the expected keys,
         and some matching values (not all).
-
         """
         with open(tiff_filename, 'rb') as fh:
             im = PIL.Image.open(fh)
@@ -59,9 +43,8 @@ class TestGeoTiffExport(tests.IrisTest):
         # Check that the cube saves correctly to TIFF :
         #   * the header contains expected keys and (some) values
         #   * the data array retrives correctly
-        import iris.experimental.raster
         with self.temp_filename('.tif') as temp_filename:
-            iris.experimental.raster.export_geotiff(cube, temp_filename)
+            export_geotiff(cube, temp_filename)
 
             # Check the metadata is correct.
             self.check_tiff_header(temp_filename, header_keys, header_items)
@@ -79,7 +62,7 @@ class TestGeoTiffExport(tests.IrisTest):
                                           data.astype(np.float32))
 
     def _check_tiff_export(self, masked, inverted=False):
-        tif_header = 'SMALL_total_column_co2.nc.tif_header.txt'
+        tif_header = 'sample_field.nc.tif_header.txt'
         tif_header_keys = [256, 257, 258, 259, 262, 273,
                            277, 278, 279, 284, 339, 33550, 33922]
         tif_header_entries = {
@@ -100,9 +83,9 @@ class TestGeoTiffExport(tests.IrisTest):
             33550: (1.125, 1.125, 0.0),
             33922: (0.0, 0.0, 0.0, -0.5625, 89.4375, 0.0)
         }
-        fin = tests.get_data_path(('NetCDF', 'global', 'xyt',
-                                   'SMALL_total_column_co2.nc'))
-        cube = iris.load_cube(fin)[0]
+        fin = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                           'sample_field.nc')
+        cube = iris.load_cube(fin)
         # PIL doesn't support float64
         cube.data = cube.data.astype('f4')
 
